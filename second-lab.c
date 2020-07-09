@@ -75,13 +75,13 @@ int init_person(data *person) {
     return 0;
 }
 
-struct my_simple_vector {
+typedef struct my_simple_vector {
     data **arr;
     int size;
     int arr_size;
-};
+} my_simple_vector;
 
-int init(struct my_simple_vector *vector) {
+int init(my_simple_vector *vector) {
     if ((vector->arr = (data **) malloc(8 * sizeof(data *))) == NULL) {
         printf("%s\n", "Can't allocate memory for vector");
         return 1;
@@ -91,7 +91,7 @@ int init(struct my_simple_vector *vector) {
     return 0;
 }
 
-int expand_vector(struct my_simple_vector *vector) {
+int expand_vector(my_simple_vector *vector) {
     if ((vector->arr = realloc((*vector).arr, (*vector).arr_size * 2 * sizeof(data))) == NULL) {
         printf("%s\n", "Error while attempt to expand memory for vector");
         return 1;
@@ -100,14 +100,14 @@ int expand_vector(struct my_simple_vector *vector) {
     return 1;
 }
 
-int insert(struct my_simple_vector *vector, data *item) {
+int insert(my_simple_vector *vector, data *item) {
     int error = 0;
     if (vector->size == vector->arr_size) error = expand_vector(vector);
     *(vector->arr + (*vector).size++) = item;
     return error;
 }
 
-int read_data(char *file, struct my_simple_vector *vector) {
+int read_data(char *file, my_simple_vector *vector) {
     FILE *fp = fopen(file, "r");
     if (fp == NULL) {
         printf("%s", "can not open input file");
@@ -166,7 +166,7 @@ int comp(data *first, data *second) {
     }
 }
 
-int partition(struct my_simple_vector *vector, int low, int high,
+int partition(my_simple_vector *vector, int low, int high,
               int (*comparator)(data *first, data *second)) {
     data *pivot = vector->arr[high];
     int i = low - 1;
@@ -180,7 +180,7 @@ int partition(struct my_simple_vector *vector, int low, int high,
     return i + 1;
 }
 
-int iterative_quick_sort(struct my_simple_vector *vector, int l, int h,
+int iterative_quick_sort(my_simple_vector *vector, int l, int h,
                          int (*comparator)(data *first, data *second)) {
     stack *my_stack;
     if ((my_stack = (stack *) malloc(sizeof(stack))) == NULL) return 1;
@@ -237,14 +237,14 @@ void free_person(data **person) {
     free(*person);
 }
 
-void free_vector(struct my_simple_vector *vector) {
+void free_vector(my_simple_vector *vector) {
     for (int i = 0; i < (*vector).size; i++) {
         free_person((*vector).arr + i);
     }
     free((&(*vector).arr));
 }
 
-void write_data(struct my_simple_vector *vector, char *output) {
+void write_data(my_simple_vector *vector, char *output) {
     FILE *fp = fopen(output, "w");
     for (int i = 0; i < vector->size; i++) {
         fprintf(fp, "%s ", vector->arr[i]->family_name);
@@ -263,8 +263,8 @@ int main(int argc, char *argv[]) {
         printf("%s\n", "too many arguments");
         return 337;
     }
-    struct my_simple_vector *input;
-    if ((input = (struct my_simple_vector *) malloc(sizeof(struct my_simple_vector))) == NULL) {
+    my_simple_vector *input;
+    if ((input = (my_simple_vector *) malloc(sizeof(my_simple_vector))) == NULL) {
         printf("%s\n", "Can't allocate memory for vector");
         return 1;
     }
