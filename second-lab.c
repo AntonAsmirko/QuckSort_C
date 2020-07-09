@@ -32,8 +32,10 @@ int expand_stack(stack *my_stack) {
 int push(stack *my_stack, int item) {
     int error = 0;
     if (my_stack->size == my_stack->arr_size) error = expand_stack(my_stack);
+    if (error)
+        return 1;
     my_stack->arr[(my_stack->size)++] = item;
-    return error;
+    return 0;
 }
 
 int shrink_stack(stack *my_stack) {
@@ -97,14 +99,16 @@ int expand_vector(my_simple_vector *vector) {
         return 1;
     }
     vector->arr_size = (*vector).arr_size * 2;
-    return 1;
+    return 0;
 }
 
 int insert(my_simple_vector *vector, data *item) {
     int error = 0;
     if (vector->size == vector->arr_size) error = expand_vector(vector);
+    if (error)
+        return 1;
     *(vector->arr + (*vector).size++) = item;
-    return error;
+    return 0;
 }
 
 int read_data(char *file, my_simple_vector *vector) {
@@ -131,7 +135,7 @@ int read_data(char *file, my_simple_vector *vector) {
         fscanf(fp, "%s", person->first_name);
         fscanf(fp, "%s", person->last_name);
         fscanf(fp, "%d", &(person->phone_number));
-        if(insert(vector, person)){
+        if (insert(vector, person)) {
             fclose(fp);
             free(person);
             return 1;
@@ -230,16 +234,9 @@ int iterative_quick_sort(my_simple_vector *vector, int l, int h,
     return 0;
 }
 
-void free_person(data **person) {
-    free((**person).first_name);
-    free((**person).family_name);
-    free((**person).last_name);
-    free(*person);
-}
-
 void free_vector(my_simple_vector *vector) {
     for (int i = 0; i < (*vector).size; i++) {
-        free_person((*vector).arr + i);
+        free(*(vector->arr + i));
     }
     free((&(*vector).arr));
 }
@@ -268,7 +265,7 @@ int main(int argc, char *argv[]) {
         printf("%s\n", "Can't allocate memory for vector");
         return 1;
     }
-    if(read_data(argv[1], input)){
+    if (read_data(argv[1], input)) {
         free_vector(input);
         return 1;
     }
@@ -279,4 +276,4 @@ int main(int argc, char *argv[]) {
     write_data(input, argv[2]);
     free_vector(input);
     return 0;
-};
+}
