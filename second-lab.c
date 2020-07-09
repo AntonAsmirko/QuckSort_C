@@ -11,15 +11,20 @@ typedef struct stack {
 } stack;
 
 int make_stack(stack *my_stack) {
-    if ((my_stack->arr = (int *) malloc(sizeof(int))) == NULL)
+    if ((my_stack->arr = (int *) malloc(sizeof(int))) == NULL) {
+        printf("%s\n", "error occured while attempt to allocate memory for stack");
         return 1;
+    }
     my_stack->arr_size = 1;
     my_stack->size = 0;
     return 0;
 }
 
 int expand_stack(stack *my_stack) {
-    if ((my_stack->arr = realloc(my_stack->arr, 2 * my_stack->arr_size)) == NULL)return 1;
+    if ((my_stack->arr = realloc(my_stack->arr, 2 * my_stack->arr_size)) == NULL) {
+        printf("%s\n", "error occured while attempt to expand stack");
+        return 1;
+    }
     my_stack->arr_size *= 2;
     return 0;
 }
@@ -32,7 +37,10 @@ int push(stack *my_stack, int item) {
 }
 
 int shrink_stack(stack *my_stack) {
-    if ((my_stack->arr = realloc(my_stack->arr, MAX((my_stack->arr_size / 2), 1))) == NULL)return 1;
+    if ((my_stack->arr = realloc(my_stack->arr, MAX((my_stack->arr_size / 2), 1))) == NULL) {
+        printf("%s\n", "error occured while attempt to shrink stack");
+        return 1;
+    }
     my_stack->arr_size = MAX(my_stack->arr_size / 2, 1);
     return 0;
 }
@@ -51,10 +59,20 @@ typedef struct data {
     int phone_number;
 } data;
 
-void init_person(data *person) {
-    person->family_name = (char *) malloc(21 * sizeof(char));
-    person->first_name = (char *) malloc(21 * sizeof(char));
-    person->last_name = (char *) malloc(21 * sizeof(char));
+int init_person(data *person) {
+    if ((person->family_name = (char *) malloc(21 * sizeof(char))) == NULL) {
+        printf("%s\n", "error occured while attempt to allocate memory for person entity");
+        return 1;
+    }
+    if ((person->first_name = (char *) malloc(21 * sizeof(char))) == NULL) {
+        printf("%s\n", "error occured while attempt to allocate memory for person entity");
+        return 1;
+    }
+    if ((person->last_name = (char *) malloc(21 * sizeof(char))) == NULL) {
+        printf("%s\n", "error occured while attempt to allocate memory for person entity");
+        return 1;
+    }
+    return 0;
 }
 
 struct my_simple_vector {
@@ -63,33 +81,49 @@ struct my_simple_vector {
     int arr_size;
 };
 
-void init(struct my_simple_vector *vector) {
-    vector->arr = (data **) malloc(8 * sizeof(data *));
+int init(struct my_simple_vector *vector) {
+    if ((vector->arr = (data **) malloc(8 * sizeof(data *))) == NULL) {
+        printf("%s\n", "Can't allocate memory for vector");
+        return 1;
+    }
     vector->arr_size = 8;
     vector->size = 0;
+    return 0;
 }
 
-void expand_vector(struct my_simple_vector *vector) {
-    vector->arr = realloc((*vector).arr, (*vector).arr_size * 2 * sizeof(data));
+int expand_vector(struct my_simple_vector *vector) {
+    if ((vector->arr = realloc((*vector).arr, (*vector).arr_size * 2 * sizeof(data))) == NULL) {
+        printf("%s\n", "Error while attempt to expand memory for vector");
+        return 1;
+    }
     vector->arr_size = (*vector).arr_size * 2;
+    return 1;
 }
 
-void insert(struct my_simple_vector *vector, data *item) {
-    if (vector->size == vector->arr_size) expand_vector(vector);
+int insert(struct my_simple_vector *vector, data *item) {
+    int error = 0;
+    if (vector->size == vector->arr_size) error = expand_vector(vector);
     *(vector->arr + (*vector).size++) = item;
+    return error;
 }
 
-struct my_simple_vector *read_data(char *file) {
+int read_data(char *file, struct my_simple_vector *vector) {
     FILE *fp = fopen(file, "r");
     if (fp == NULL) {
         printf("%s", "can not open input file");
-        exit(1);
+        return 1;
     }
-    struct my_simple_vector *vector = (struct my_simple_vector *) malloc(sizeof(struct my_simple_vector));
-    init(vector);
+    if (init(vector)) {
+        fclose(fp);
+        return 1;
+    }
     while (1) {
         data *person = (data *) malloc(sizeof(data));
-        init_person(person);
+        if (init_person(person)) {
+            free(person);
+            fclose(fp);
+            return 1;
+        }
         if (fscanf(fp, "%s", person->family_name) == EOF) {
             free(person);
             break;
@@ -97,10 +131,14 @@ struct my_simple_vector *read_data(char *file) {
         fscanf(fp, "%s", person->first_name);
         fscanf(fp, "%s", person->last_name);
         fscanf(fp, "%d", &(person->phone_number));
-        insert(vector, person);
+        if(insert(vector, person)){
+            fclose(fp);
+            free(person);
+            return 1;
+        }
     }
     fclose(fp);
-    return vector;
+    return 0;
 }
 
 void swap(data **first, data **second) {
@@ -219,13 +257,21 @@ void write_data(struct my_simple_vector *vector, char *output) {
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        printf("%s", "too few arguments");
+        printf("%s\n", "too few arguments");
         return 228;
     } else if (argc > 3) {
-        printf("%s", "too many arguments");
+        printf("%s\n", "too many arguments");
         return 337;
     }
-    struct my_simple_vector *input = read_data(argv[1]);
+    struct my_simple_vector *input;
+    if ((input = (struct my_simple_vector *) malloc(sizeof(struct my_simple_vector))) == NULL) {
+        printf("%s\n", "Can't allocate memory for vector");
+        return 1;
+    }
+    if(read_data(argv[1], input)){
+        free_vector(input);
+        return 1;
+    }
     if (iterative_quick_sort(input, 0, input->size - 1, comp)) {
         free_vector(input);
         return 1;
