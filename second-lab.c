@@ -231,6 +231,7 @@ int iterative_quick_sort(my_simple_vector *vector, int l, int h,
             }
         }
     }
+    free(my_stack);
     return 0;
 }
 
